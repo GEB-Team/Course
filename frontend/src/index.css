@@ -1,0 +1,139 @@
+:root {
+  --sky-blue: #87CEEB;
+  --pure-white: #FFFFFF;
+  --light-grey: #F3F4F6;
+  --dark-grey: #4B5563;
+  --border-grey: #E5E7EB;
+  
+  --bg-color: var(--light-grey);
+  --surface-white: var(--pure-white);
+  --text-main: var(--dark-grey);
+}
+
+body {
+  margin: 0;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
+    sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  background-color: var(--bg-color);
+  color: var(--text-main);
+}
+
+.pinterest-card {
+  background: var(--surface-white) !important;
+  border: 1px solid var(--border-grey) !important;
+  border-radius: 24px !important;
+  box-shadow: 0 20px 40px rgba(75, 85, 99, 0.08) !important;
+  padding: 3rem !important;
+  animation: fadeIn 0.4s ease-in-out;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(15px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* Pill Toggle Tab System */
+.pill-toggle-container {
+  display: flex;
+  background: var(--light-grey);
+  padding: 6px;
+  border-radius: 9999px;
+  margin-bottom: 2rem;
+}
+
+.pill-tab {
+  flex: 1;
+  text-align: center;
+  padding: 10px 16px;
+  border-radius: 9999px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  color: var(--dark-grey);
+  user-select: none;
+}
+
+.pill-tab.active {
+  background: var(--surface-white);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.06);
+  color: var(--sky-blue); /* Sky blue for active text */
+}
+
+.pill-tab:hover:not(.active) {
+  color: var(--sky-blue);
+}
+
+/* Button overrides */
+.btn-pill {
+  border-radius: 9999px !important;
+  background-color: var(--sky-blue) !important;
+  color: var(--dark-grey) !important;
+  padding: 14px 24px !important;
+  font-weight: 700 !important;
+  text-transform: none !important;
+  transition: transform 0.2s ease, box-shadow 0.2s ease, background-color 0.2s ease !important;
+}
+
+.btn-pill:hover {
+  transform: scale(0.98);
+  background-color: #6EB2D4 !important; /* Slightly darker sky blue */
+  box-shadow: 0 4px 12px rgba(135, 206, 235, 0.4) !important;
+}
+
+.google-btn-wrapper > div {
+  width: 100% !important;
+  display: flex;
+  justify-content: center;
+}
+
+/* Emojis */
+.brand-title::before { content: '🏛️ '; }
+.tab-employee::before { content: '👨‍💼 '; }
+.tab-admin::before { content: '🛡️ '; }
+
+.fluid-grid {
+  display: grid;
+  gap: 24px;
+}
+
+@media (max-width: 480px) {
+  .fluid-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (min-width: 481px) and (max-width: 767px) {
+  .fluid-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (min-width: 768px) {
+  .fluid-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+  
+  .col-span-full {
+    grid-column: 1 / -1;
+  }
+}
+
+/* Print Stylesheet for Official Records */
+@media print {
+  body {
+    background: #FFFFFF !important;
+    color: #000000 !important;
+  }
+  header, nav, aside, .MuiDrawer-root, .no-print, button {
+    display: none !important;
+  }
+  #printable-id-card {
+    box-shadow: none !important;
+    margin: 20px auto !important;
+    border: 2px solid #000000 !important;
+  }
+}
+

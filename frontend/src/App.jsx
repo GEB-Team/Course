@@ -4,6 +4,7 @@ import AuthPage from './pages/AuthPage';
 import EmployeeRegistrationPage from './pages/EmployeeRegistrationPage';
 import EmployeeDashboard from './pages/EmployeeDashboard';
 import AdminDashboard from './pages/AdminDashboard';
+import OnboardingPage from './pages/OnboardingPage';
 import { AuthProvider, useAuth } from './context/AuthContext';
 
 const ProtectedRoute = ({ children, requiredRole }) => {
@@ -26,6 +27,15 @@ function App() {
         <Routes>
           <Route path="/" element={<AuthPage />} />
           <Route path="/employee/register" element={<EmployeeRegistrationPage />} />
+          
+          <Route 
+            path="/onboarding" 
+            element={
+              <ProtectedRoute requiredRole="EMPLOYEE">
+                <OnboardingPage />
+              </ProtectedRoute>
+            } 
+          />
           
           <Route 
             path="/employee/dashboard" 

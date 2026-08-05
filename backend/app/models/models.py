@@ -44,10 +44,21 @@ class User(Base):
     is_active = Column(Boolean, default=True)
     created_at = Column(DateTime, default=datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    
+    # Document Verification Module Fields
+    employee_id = Column(String, unique=True, index=True, nullable=True)
+    employee_category = Column(String, nullable=True)
+    qualification = Column(String, nullable=True)
+    department = Column(String, nullable=True)
+    designation = Column(String, nullable=True)
+    verification_status = Column(String, default="Pending")
+    verification_confidence = Column(Integer, nullable=True)
+    recommended_courses = Column(String, nullable=True) # JSON String
 
     # Relationships
     refresh_tokens = relationship("RefreshToken", back_populates="user", cascade="all, delete-orphan")
     login_history = relationship("LoginHistory", back_populates="user", cascade="all, delete-orphan")
+    documents = relationship("EmployeeDocument", back_populates="user", cascade="all, delete-orphan")
 
 class RefreshToken(Base):
     __tablename__ = "refresh_tokens"
@@ -71,3 +82,94 @@ class LoginHistory(Base):
     user_agent = Column(String, nullable=True)
 
     user = relationship("User", back_populates="login_history")
+
+class EmployeeDocument(Base):
+    __tablename__ = "employee_documents"
+
+    id = Column(String, primary_key=True, default=lambda: str(uuid.uuid4()), index=True)
+    user_id = Column(String, ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
+    file_path = Column(String, nullable=False)
+    document_type = Column(String, nullable=True)
+    file_size = Column(Integer, nullable=True)
+    extracted_text = Column(String, nullable=True)
+    uploaded_at = Column(DateTime, default=datetime.utcnow)
+
+    user = relationship("User", back_populates="documents")
+
+class Course(Base):
+    __tablename__ = "courses"
+    id = Column(String, primary_key=True, default=lambda: str(uuid.uuid4()), index=True)
+    name = Column(String, nullable=False)
+    description = Column(String, nullable=True)
+    difficulty_level = Column(String, nullable=True)
+    estimated_duration = Column(String, nullable=True)
+    created_at = Column(DateTime, default=datetime.utcnow)
+
+class CourseRegistration(Base):
+    __tablename__ = "course_registrations"
+    id = Column(String, primary_key=True, default=lambda: str(uuid.uuid4()), index=True)
+    user_id = Column(String, ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
+    course_id = Column(String, ForeignKey("courses.id", ondelete="CASCADE"), nullable=False)
+    status = Column(String, default="Pending") # Pending, In Progress, Completed
+    completion_percentage = Column(Integer, default=0)
+    estimated_completion_date = Column(DateTime, nullable=True)
+    registered_at = Column(DateTime, default=datetime.utcnow)
+
+    user = relationship("User", backref="course_registrations")
+    course = relationship("Course")
+
+class TrainingSession(Base):
+    __tablename__ = "training_sessions"
+    id = Column(String, primary_key=True, default=lambda: str(uuid.uuid4()), index=True)
+    name = Column(String, nullable=False)
+    trainer = Column(String, nullable=False)
+    date = Column(DateTime, nullable=False)
+    time = Column(String, nullable=False)
+    venue = Column(String, nullable=False)
+
+class Certificate(Base):
+    __tablename__ = "certificates"
+    id = Column(String, primary_key=True, default=lambda: str(uuid.uuid4()), index=True)
+    user_id = Column(String, ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
+    name = Column(String, nullable=False)
+    issue_date = Column(DateTime, default=datetime.utcnow)
+    certificate_number = Column(String, unique=True, index=True, nullable=False)
+    
+    user = relationship("User", backref="certificates")
+
+class Payment(Base):
+    __tablename__ = "payments"
+    id = Column(String, primary_key=True, default=lambda: str(uuid.uuid4()), index=True)
+    user_id = Column(String, ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
+    amount = Column(Integer, nullable=False)
+    status = Column(String, default="Pending") # Pending, Completed
+    description = Column(String, nullable=True)
+    created_at = Column(DateTime, default=datetime.utcnow)
+
+    user = relationship("User", backref="payments")
+
+class Notification(Base):
+    __tablename__ = "notifications"
+    id = Column(String, primary_key=True, default=lambda: str(uuid.uuid4()), index=True)
+    user_id = Column(String, ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
+    message = Column(String, nullable=False)
+    is_read = Column(Boolean, default=False)
+    created_at = Column(DateTime, default=datetime.utcnow)
+
+    user = relationship("User", backref="notifications")
+
+class ActivityLog(Base):
+    __tablename__ = "activity_logs"
+    id = Column(String, primary_key=True, default=lambda: str(uuid.uuid4()), index=True)
+    user_id = Column(String, ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
+    action = Column(String, nullable=False)
+    created_at = Column(DateTime, default=datetime.utcnow)
+
+    user = relationship("User", backref="activity_logs")
+
+class Announcement(Base):
+    __tablename__ = "announcements"
+    id = Column(String, primary_key=True, default=lambda: str(uuid.uuid4()), index=True)
+    title = Column(String, nullable=False)
+    type = Column(String, nullable=False)
+    created_at = Column(DateTime, default=datetime.utcnow)

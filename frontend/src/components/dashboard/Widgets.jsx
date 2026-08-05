@@ -1,13 +1,18 @@
 import React from 'react';
-import { Card, CardContent, Typography, Box, Grid, Avatar, Button, LinearProgress, List, ListItem, ListItemText, ListItemAvatar, Divider, Chip } from '@mui/material';
+import { 
+  Card, CardContent, Typography, Box, Grid, Avatar, Button, 
+  LinearProgress, List, ListItem, ListItemText, ListItemAvatar, 
+  Divider, Chip, IconButton 
+} from '@mui/material';
 import { 
   MenuBook, CheckCircle, HourglassEmpty, WorkspacePremium, 
   Group, NotificationsActive, Payment, Download, 
-  Event, Campaign, SupportAgent, ChevronRight
+  Event, Campaign, ChevronRight, Lightbulb, AppRegistration 
 } from '@mui/icons-material';
 import { motion } from 'framer-motion';
+import { useNavigate } from 'react-router-dom';
 
-const MotionCard = motion(Card);
+const MotionCard = motion.create ? motion.create(Card) : motion(Card);
 
 const cardVariants = {
   hidden: { opacity: 0, y: 20 },
@@ -52,164 +57,213 @@ export const SummaryCards = ({ stats }) => {
   );
 };
 
-export const DocumentStatusCard = ({ user }) => (
-  <Card sx={{ borderRadius: 3, height: '100%' }}>
-    <CardContent>
-      <Typography variant="h6" fontWeight="bold" mb={2}>Document Verification</Typography>
-      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
-        <Typography variant="body2" color="text.secondary">Status</Typography>
-        <Chip 
-          label={user?.verification_status || 'Pending'} 
-          color={user?.verification_status === 'Verified' ? 'success' : 'warning'} 
+export const DocumentStatusCard = ({ user }) => {
+  const navigate = useNavigate();
+  return (
+    <Card sx={{ borderRadius: 3, height: '100%' }}>
+      <CardContent>
+        <Typography variant="h6" fontWeight="bold" mb={2}>Document Verification</Typography>
+        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
+          <Typography variant="body2" color="text.secondary">Status</Typography>
+          <Chip 
+            label={user?.verification_status || 'Pending'} 
+            color={user?.verification_status === 'Verified' ? 'success' : 'warning'} 
+            size="small" 
+          />
+        </Box>
+        <Typography variant="body2" color="text.secondary" mb={2}>
+          Registration Date: {user?.registration_date ? new Date(user.registration_date).toLocaleDateString() : 'Active'}
+        </Typography>
+        <Button 
+          variant="contained" 
+          color="primary"
+          fullWidth 
           size="small" 
-        />
-      </Box>
-      <Typography variant="body2" color="text.secondary" mb={2}>
-        Registration Date: {new Date(user?.registration_date).toLocaleDateString()}
-      </Typography>
-      <Button variant="outlined" fullWidth size="small" endIcon={<ChevronRight />}>
-        View Uploaded Documents
-      </Button>
-    </CardContent>
-  </Card>
-);
+          endIcon={<ChevronRight />}
+          onClick={() => navigate('/onboarding')}
+        >
+          {user?.verification_status === 'Verified' ? 'View Document Verification' : 'Upload & Verify Documents'}
+        </Button>
+      </CardContent>
+    </Card>
+  );
+};
 
-export const CourseProgress = ({ courses }) => (
-  <Card sx={{ borderRadius: 3, height: '100%' }}>
-    <CardContent>
-      <Typography variant="h6" fontWeight="bold" mb={2}>Course Progress</Typography>
-      {courses?.map((course) => (
-        <Box key={course.id} sx={{ mb: 3 }}>
-          <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
-            <Typography variant="body2" fontWeight={600}>{course.name}</Typography>
-            <Typography variant="body2" color="primary">{course.completion_percentage}%</Typography>
+export const CourseProgress = ({ courses }) => {
+  const navigate = useNavigate();
+  return (
+    <Card sx={{ borderRadius: 3, height: '100%' }}>
+      <CardContent>
+        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
+          <Typography variant="h6" fontWeight="bold">Course Progress</Typography>
+          <Button size="small" onClick={() => navigate('/courses/progress')}>View All</Button>
+        </Box>
+        {courses?.map((course) => (
+          <Box key={course.id} sx={{ mb: 3 }}>
+            <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
+              <Typography variant="body2" fontWeight={600}>{course.name}</Typography>
+              <Typography variant="body2" color="primary">{course.completion_percentage}%</Typography>
+            </Box>
+            <LinearProgress variant="determinate" value={course.completion_percentage} sx={{ height: 8, borderRadius: 4, mb: 1 }} />
+            <Typography variant="caption" color="text.secondary">
+              Estimated Completion: {new Date(course.estimated_completion_date).toLocaleDateString()}
+            </Typography>
           </Box>
-          <LinearProgress variant="determinate" value={course.completion_percentage} sx={{ height: 8, borderRadius: 4, mb: 1 }} />
-          <Typography variant="caption" color="text.secondary">
-            Estimated Completion: {new Date(course.estimated_completion_date).toLocaleDateString()}
-          </Typography>
-        </Box>
-      ))}
-    </CardContent>
-  </Card>
-);
+        ))}
+      </CardContent>
+    </Card>
+  );
+};
 
-export const AIRecommendedCourses = ({ recommendations }) => (
-  <Card sx={{ borderRadius: 3, height: '100%' }}>
-    <CardContent>
-      <Typography variant="h6" fontWeight="bold" mb={2} display="flex" alignItems="center">
-        <Lightbulb sx={{ color: '#F59E0B', mr: 1 }} /> AI Recommended
-      </Typography>
-      <List disablePadding>
-        {recommendations?.map((course, index) => (
-          <React.Fragment key={course.id}>
-            <ListItem alignItems="flex-start" disableGutters>
-              <ListItemText
-                primary={<Typography variant="subtitle2" fontWeight={600}>{course.name}</Typography>}
-                secondary={
-                  <React.Fragment>
-                    <Typography variant="caption" color="text.secondary" display="block" mb={0.5}>
-                      {course.reason}
+export const AIRecommendedCourses = ({ recommendations }) => {
+  const navigate = useNavigate();
+  return (
+    <Card sx={{ borderRadius: 3, height: '100%' }}>
+      <CardContent>
+        <Typography variant="h6" fontWeight="bold" mb={2} display="flex" alignItems="center">
+          <Lightbulb sx={{ color: '#F59E0B', mr: 1 }} /> AI Recommended
+        </Typography>
+        <List disablePadding>
+          {recommendations?.map((course, index) => (
+            <React.Fragment key={course.id}>
+              <ListItem alignItems="flex-start" disableGutters>
+                <ListItemText
+                  primary={<Typography variant="subtitle2" fontWeight={600}>{course.name}</Typography>}
+                  secondary={
+                    <React.Fragment>
+                      <Typography variant="caption" color="text.secondary" display="block" mb={0.5}>
+                        {course.reason}
+                      </Typography>
+                      <Box sx={{ display: 'flex', gap: 1 }}>
+                        <Chip label={course.difficulty_level} size="small" sx={{ height: 20, fontSize: '0.65rem' }} />
+                        <Chip label={course.estimated_duration} size="small" variant="outlined" sx={{ height: 20, fontSize: '0.65rem' }} />
+                      </Box>
+                    </React.Fragment>
+                  }
+                />
+                <Button size="small" variant="contained" sx={{ mt: 1 }} onClick={() => navigate('/courses/register')}>
+                  Enroll
+                </Button>
+              </ListItem>
+              {index < recommendations.length - 1 && <Divider component="li" />}
+            </React.Fragment>
+          ))}
+        </List>
+      </CardContent>
+    </Card>
+  );
+};
+
+export const UpcomingTraining = ({ trainings }) => {
+  const navigate = useNavigate();
+  return (
+    <Card sx={{ borderRadius: 3, height: '100%' }}>
+      <CardContent>
+        <Typography variant="h6" fontWeight="bold" mb={2}>Upcoming Training</Typography>
+        <List disablePadding>
+          {trainings?.map((training, index) => (
+            <React.Fragment key={training.id}>
+              <ListItem disableGutters>
+                <ListItemAvatar>
+                  <Avatar sx={{ bgcolor: 'primary.light' }}><Event /></Avatar>
+                </ListItemAvatar>
+                <ListItemText
+                  primary={<Typography variant="subtitle2" fontWeight={600}>{training.name}</Typography>}
+                  secondary={
+                    <Typography variant="caption" color="text.secondary">
+                      {new Date(training.date).toLocaleDateString()} • {training.time} • {training.venue}
                     </Typography>
-                    <Box sx={{ display: 'flex', gap: 1 }}>
-                      <Chip label={course.difficulty_level} size="small" sx={{ height: 20, fontSize: '0.65rem' }} />
-                      <Chip label={course.estimated_duration} size="small" variant="outlined" sx={{ height: 20, fontSize: '0.65rem' }} />
-                    </Box>
-                  </React.Fragment>
-                }
-              />
-              <Button size="small" variant="contained" sx={{ mt: 1 }}>Enroll</Button>
-            </ListItem>
-            {index < recommendations.length - 1 && <Divider component="li" />}
-          </React.Fragment>
-        ))}
-      </List>
-    </CardContent>
-  </Card>
-);
+                  }
+                />
+                <Button size="small" color="secondary" variant="outlined" onClick={() => navigate('/training')}>
+                  Join
+                </Button>
+              </ListItem>
+              {index < trainings.length - 1 && <Divider component="li" />}
+            </React.Fragment>
+          ))}
+        </List>
+      </CardContent>
+    </Card>
+  );
+};
 
-export const UpcomingTraining = ({ trainings }) => (
-  <Card sx={{ borderRadius: 3, height: '100%' }}>
-    <CardContent>
-      <Typography variant="h6" fontWeight="bold" mb={2}>Upcoming Training</Typography>
-      <List disablePadding>
-        {trainings?.map((training, index) => (
-          <React.Fragment key={training.id}>
-            <ListItem disableGutters>
-              <ListItemAvatar>
-                <Avatar sx={{ bgcolor: 'primary.light' }}><Event /></Avatar>
-              </ListItemAvatar>
-              <ListItemText
-                primary={<Typography variant="subtitle2" fontWeight={600}>{training.name}</Typography>}
-                secondary={
-                  <Typography variant="caption" color="text.secondary">
-                    {new Date(training.date).toLocaleDateString()} • {training.time} • {training.venue}
-                  </Typography>
-                }
-              />
-              <Button size="small" color="secondary" variant="outlined">Join</Button>
-            </ListItem>
-            {index < trainings.length - 1 && <Divider component="li" />}
-          </React.Fragment>
-        ))}
-      </List>
-    </CardContent>
-  </Card>
-);
-
-export const CertificationSummary = ({ certificates }) => (
-  <Card sx={{ borderRadius: 3, height: '100%' }}>
-    <CardContent>
-      <Typography variant="h6" fontWeight="bold" mb={2}>Certificates Earned</Typography>
-      <List disablePadding>
-        {certificates?.map((cert, index) => (
-          <React.Fragment key={cert.id}>
-            <ListItem disableGutters>
-              <ListItemAvatar>
-                <Avatar sx={{ bgcolor: 'secondary.light' }}><WorkspacePremium /></Avatar>
-              </ListItemAvatar>
-              <ListItemText
-                primary={<Typography variant="subtitle2" fontWeight={600}>{cert.name}</Typography>}
-                secondary={
-                  <Typography variant="caption" color="text.secondary">
-                    Issued: {new Date(cert.issue_date).toLocaleDateString()} • ID: {cert.certificate_number}
-                  </Typography>
-                }
-              />
-              <IconButton size="small" color="primary"><Download /></IconButton>
-            </ListItem>
-            {index < certificates.length - 1 && <Divider component="li" />}
-          </React.Fragment>
-        ))}
-      </List>
-    </CardContent>
-  </Card>
-);
-
-export const ProfileSummary = ({ user }) => (
-  <Card sx={{ borderRadius: 3, height: '100%', background: 'linear-gradient(135deg, #0F172A 0%, #1E293B 100%)', color: 'white' }}>
-    <CardContent sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center', py: 4 }}>
-      <Avatar src={user?.profile_picture} sx={{ width: 80, height: 80, mb: 2, border: '3px solid #38BDF8' }} />
-      <Typography variant="h6" fontWeight="bold">{user?.full_name}</Typography>
-      <Typography variant="body2" sx={{ color: '#94A3B8', mb: 2 }}>{user?.designation} • {user?.department}</Typography>
-      
-      <Box sx={{ width: '100%', mt: 2 }}>
-        <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 0.5 }}>
-          <Typography variant="caption">Profile Completion</Typography>
-          <Typography variant="caption">{user?.profile_completion}%</Typography>
+export const CertificationSummary = ({ certificates }) => {
+  const navigate = useNavigate();
+  return (
+    <Card sx={{ borderRadius: 3, height: '100%' }}>
+      <CardContent>
+        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
+          <Typography variant="h6" fontWeight="bold">Certificates Earned</Typography>
+          <Button size="small" onClick={() => navigate('/certification')}>View All</Button>
         </Box>
-        <LinearProgress variant="determinate" value={user?.profile_completion} sx={{ height: 6, borderRadius: 3, bgcolor: 'rgba(255,255,255,0.1)', '& .MuiLinearProgress-bar': { bgcolor: '#38BDF8' } }} />
-      </Box>
-    </CardContent>
-  </Card>
-);
+        <List disablePadding>
+          {certificates?.map((cert, index) => (
+            <React.Fragment key={cert.id}>
+              <ListItem disableGutters>
+                <ListItemAvatar>
+                  <Avatar sx={{ bgcolor: 'secondary.light' }}><WorkspacePremium /></Avatar>
+                </ListItemAvatar>
+                <ListItemText
+                  primary={<Typography variant="subtitle2" fontWeight={600}>{cert.name}</Typography>}
+                  secondary={
+                    <Typography variant="caption" color="text.secondary">
+                      Issued: {new Date(cert.issue_date).toLocaleDateString()} • ID: {cert.certificate_number}
+                    </Typography>
+                  }
+                />
+                <IconButton size="small" color="primary" onClick={() => navigate('/certification')}>
+                  <Download />
+                </IconButton>
+              </ListItem>
+              {index < certificates.length - 1 && <Divider component="li" />}
+            </React.Fragment>
+          ))}
+        </List>
+      </CardContent>
+    </Card>
+  );
+};
+
+export const ProfileSummary = ({ user }) => {
+  const navigate = useNavigate();
+  return (
+    <Card sx={{ borderRadius: 3, height: '100%', background: 'linear-gradient(135deg, #0F172A 0%, #1E293B 100%)', color: 'white' }}>
+      <CardContent sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center', py: 4 }}>
+        <Avatar src={user?.profile_picture} sx={{ width: 80, height: 80, mb: 2, border: '3px solid #38BDF8', bgcolor: '#38BDF8', fontSize: '1.8rem', fontWeight: 'bold' }}>
+          {user?.full_name ? user.full_name.charAt(0) : 'U'}
+        </Avatar>
+        <Typography variant="h6" fontWeight="bold">{user?.full_name || 'Employee'}</Typography>
+        <Typography variant="body2" sx={{ color: '#94A3B8', mb: 2 }}>{user?.designation || 'Specialist'} • {user?.department || 'Operations'}</Typography>
+        
+        <Box sx={{ width: '100%', mt: 2 }}>
+          <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 0.5 }}>
+            <Typography variant="caption">Profile Completion</Typography>
+            <Typography variant="caption">{user?.profile_completion || 85}%</Typography>
+          </Box>
+          <LinearProgress variant="determinate" value={user?.profile_completion || 85} sx={{ height: 6, borderRadius: 3, bgcolor: 'rgba(255,255,255,0.1)', '& .MuiLinearProgress-bar': { bgcolor: '#38BDF8' } }} />
+        </Box>
+
+        <Button 
+          variant="outlined" 
+          size="small" 
+          sx={{ mt: 3, borderColor: '#38BDF8', color: '#38BDF8', '&:hover': { borderColor: '#7dd3fc', bgcolor: 'rgba(56,189,248,0.1)' } }}
+          onClick={() => navigate('/profile')}
+        >
+          View Full Profile
+        </Button>
+      </CardContent>
+    </Card>
+  );
+};
 
 export const QuickActions = () => {
+  const navigate = useNavigate();
   const actions = [
-    { label: 'Upload Documents', icon: <Download />, color: 'primary' },
-    { label: 'Register Course', icon: <AppRegistration />, color: 'secondary' },
-    { label: 'Start Learning', icon: <MenuBook />, color: 'success' },
-    { label: 'Pay Fees', icon: <Payment />, color: 'warning' }
+    { label: 'Upload Documents', icon: <Download />, color: 'primary', path: '/onboarding' },
+    { label: 'Register Course', icon: <AppRegistration />, color: 'secondary', path: '/courses/register' },
+    { label: 'Start Learning', icon: <MenuBook />, color: 'success', path: '/courses/learning' },
+    { label: 'Pay Fees', icon: <Payment />, color: 'warning', path: '/payment' }
   ];
 
   return (
@@ -224,6 +278,7 @@ export const QuickActions = () => {
                 color={action.color} 
                 fullWidth 
                 startIcon={action.icon}
+                onClick={() => navigate(action.path)}
                 sx={{ justifyContent: 'flex-start', py: 1.5, borderRadius: 2, textTransform: 'none' }}
               >
                 {action.label}
@@ -277,21 +332,27 @@ export const Announcements = ({ announcements }) => (
   </Card>
 );
 
-export const PaymentSummary = ({ payments }) => (
-  <Card sx={{ borderRadius: 3, height: '100%' }}>
-    <CardContent>
-      <Typography variant="h6" fontWeight="bold" mb={2}>Payment Summary</Typography>
-      <Box sx={{ display: 'flex', gap: 2, mb: 3 }}>
-        <Box sx={{ flex: 1, p: 2, bgcolor: '#FEF2F2', borderRadius: 2 }}>
-          <Typography variant="caption" color="error">Pending</Typography>
-          <Typography variant="h5" fontWeight="bold" color="error.dark">${payments?.pending}</Typography>
+export const PaymentSummary = ({ payments }) => {
+  const navigate = useNavigate();
+  return (
+    <Card sx={{ borderRadius: 3, height: '100%' }}>
+      <CardContent>
+        <Typography variant="h6" fontWeight="bold" mb={2}>Payment Summary</Typography>
+        <Box sx={{ display: 'flex', gap: 2, mb: 3 }}>
+          <Box sx={{ flex: 1, p: 2, bgcolor: '#FEF2F2', borderRadius: 2 }}>
+            <Typography variant="caption" color="error">Pending</Typography>
+            <Typography variant="h5" fontWeight="bold" color="error.dark">${payments?.pending || 0}</Typography>
+          </Box>
+          <Box sx={{ flex: 1, p: 2, bgcolor: '#F0FDF4', borderRadius: 2 }}>
+            <Typography variant="caption" color="success.main">Completed</Typography>
+            <Typography variant="h5" fontWeight="bold" color="success.dark">${payments?.completed || 0}</Typography>
+          </Box>
         </Box>
-        <Box sx={{ flex: 1, p: 2, bgcolor: '#F0FDF4', borderRadius: 2 }}>
-          <Typography variant="caption" color="success.main">Completed</Typography>
-          <Typography variant="h5" fontWeight="bold" color="success.dark">${payments?.completed}</Typography>
-        </Box>
-      </Box>
-      <Button variant="contained" color="primary" fullWidth>Pay Now</Button>
-    </CardContent>
-  </Card>
-);
+        <Button variant="contained" color="primary" fullWidth onClick={() => navigate('/payment')}>
+          Pay Now
+        </Button>
+      </CardContent>
+    </Card>
+  );
+};
+

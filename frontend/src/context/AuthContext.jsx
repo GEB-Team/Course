@@ -1,4 +1,4 @@
-import React, { createContext, useState, useContext, useEffect } from 'react';
+import React, { createContext, useState, useContext, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import api from '../services/api';
 
@@ -11,57 +11,87 @@ export const AuthProvider = ({ children }) => {
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
 
-  useEffect(() => {
-    // In a real app, you'd fetch the user profile here using the token
-    const token = localStorage.getItem('access_token');
-    const role = localStorage.getItem('user_role');
-    if (token && role) {
-      setUser({ role });
+  const fetchUserProfile = useCallback(async () => {
+    try {
+      const response = await api.get('/auth/me');
+      const profile = response.data;
+      localStorage.setItem('user_role', profile.role);
+      setUser(profile);
+      return profile;
+    } catch {
+      localStorage.removeItem('access_token');
+      localStorage.removeItem('refresh_token');
+      localStorage.removeItem('user_role');
+      setUser(null);
+      return null;
     }
-    setLoading(false);
   }, []);
 
-  const login = async (email, password, role) => {
-    try {
-      const response = await api.post('/auth/login/manual', { email, password });
-      const { access_token, refresh_token } = response.data;
-      localStorage.setItem('access_token', access_token);
-      localStorage.setItem('refresh_token', refresh_token);
-      // We assume role verification is done correctly, backend should ideally return user details
-      localStorage.setItem('user_role', role); 
-      setUser({ role });
-      
-      if (role === 'ADMIN') {
-        navigate('/admin/dashboard');
-      } else {
-        navigate('/employee/dashboard');
+  useEffect(() => {
+    const initAuth = async () => {
+      const token = localStorage.getItem('access_token');
+      if (token) {
+        await fetchUserProfile();
       }
-      return true;
-    } catch (error) {
-      throw error;
+      setLoading(false);
+    };
+    initAuth();
+  }, [fetchUserProfile]);
+
+  const login = async (email, password, requestedRole) => {
+    const response = await api.post('/auth/login/manual', { email, password });
+    const { access_token, refresh_token } = response.data;
+    localStorage.setItem('access_token', access_token);
+    localStorage.setItem('refresh_token', refresh_token);
+    
+    // Fetch real profile from backend
+    let profile = null;
+    try {
+      profile = await fetchUserProfile();
+    } catch {
+      profile = { email, role: requestedRole };
+      setUser(profile);
     }
+
+    const effectiveRole = profile?.role || requestedRole;
+    localStorage.setItem('user_role', effectiveRole);
+
+    if (effectiveRole === 'ADMIN') {
+      navigate('/admin/dashboard');
+    } else {
+      navigate('/employee/dashboard');
+    }
+    return true;
   };
 
-  const loginGoogle = async (credential, role) => {
+  const loginGoogle = async (credential, requestedRole) => {
     try {
       const response = await api.post('/auth/login/google', { credential });
       const { access_token, refresh_token } = response.data;
       localStorage.setItem('access_token', access_token);
       localStorage.setItem('refresh_token', refresh_token);
-      localStorage.setItem('user_role', role);
-      setUser({ role });
       
-      if (role === 'ADMIN') {
+      let profile = null;
+      try {
+        profile = await fetchUserProfile();
+      } catch {
+        profile = { role: requestedRole };
+        setUser(profile);
+      }
+
+      const effectiveRole = profile?.role || requestedRole;
+      localStorage.setItem('user_role', effectiveRole);
+
+      if (effectiveRole === 'ADMIN') {
         navigate('/admin/dashboard');
       } else {
         navigate('/employee/dashboard');
       }
       return true;
     } catch (error) {
-      if (error.response?.status === 404 && role === 'EMPLOYEE') {
-        // Redirect to registration with prepopulated data
+      if (error.response?.status === 404 && requestedRole === 'EMPLOYEE') {
         navigate('/employee/register', { state: { googleData: error.response.data.detail } });
-      } else if (error.response?.status === 404 && role === 'ADMIN') {
+      } else if (error.response?.status === 404 && requestedRole === 'ADMIN') {
         throw new Error('Unauthorized Administrator Account.');
       } else {
         throw error;
@@ -78,7 +108,7 @@ export const AuthProvider = ({ children }) => {
   };
 
   return (
-    <AuthContext.Provider value={{ user, login, loginGoogle, logout, loading }}>
+    <AuthContext.Provider value={{ user, login, loginGoogle, logout, loading, refreshUser: fetchUserProfile }}>
       {!loading && children}
     </AuthContext.Provider>
   );

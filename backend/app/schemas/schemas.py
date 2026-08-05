@@ -48,3 +48,45 @@ class LoginRequest(BaseModel):
 
 class GoogleLoginRequest(BaseModel):
     credential: str  # The ID token from Google
+
+# Document Verification Schemas
+class ExtractedData(BaseModel):
+    full_name: Optional[str] = None
+    date_of_birth: Optional[str] = None
+    employee_number: Optional[str] = None
+    department: Optional[str] = None
+    designation: Optional[str] = None
+    qualification: Optional[str] = None
+    experience_years: Optional[int] = None
+    joining_date: Optional[str] = None
+    organization: Optional[str] = None
+    residence_number: Optional[str] = None
+    residence_expiry_date: Optional[str] = None
+    address: Optional[str] = None
+    email: Optional[str] = None
+    phone_number: Optional[str] = None
+
+class ExtractionResponse(BaseModel):
+    extracted_data: ExtractedData
+    document_id: str
+    confidence_score: int
+    validation_status: str
+    uncertain_fields: List[str] = []
+
+class OnboardingSubmitRequest(BaseModel):
+    document_id: str
+    # Corrected values from the user
+    full_name: str
+    applicant_type: ApplicantTypeEnum
+    experience_years: int
+    qualification: str
+    department: str
+    designation: str
+    residence_number: Optional[str] = None
+    residence_expiry_date: Optional[str] = None
+
+class OnboardingResultResponse(BaseModel):
+    status: str
+    employee_id: Optional[str] = None
+    reason: Optional[str] = None
+    recommended_courses: List[str] = []

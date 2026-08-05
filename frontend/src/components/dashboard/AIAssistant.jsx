@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Box, IconButton, Paper, Typography, TextField, Avatar, Fab, Slide, Tooltip } from '@mui/material';
+import { Box, IconButton, Paper, Typography, TextField, Avatar, Fab, Tooltip } from '@mui/material';
 import { SmartToy, Close, Send, AutoAwesome } from '@mui/icons-material';
 import { motion, AnimatePresence } from 'framer-motion';
 

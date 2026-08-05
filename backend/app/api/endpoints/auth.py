@@ -13,8 +13,32 @@ from app.schemas.schemas import UserCreate, UserResponse, Token, LoginRequest, G
 from app.core.security import verify_password, get_password_hash, create_access_token, create_refresh_token
 from app.core.config import settings
 from app.services.google_auth import verify_google_token
+from app.api.deps import get_current_user
 
 router = APIRouter()
+
+@router.get("/me")
+async def get_current_user_profile(current_user: User = Depends(get_current_user)):
+    return {
+        "id": current_user.id,
+        "full_name": current_user.full_name,
+        "email": current_user.email,
+        "role": current_user.role,
+        "username": current_user.username,
+        "phone_number": current_user.phone_number,
+        "profile_picture": current_user.profile_picture,
+        "applicant_type": current_user.applicant_type,
+        "experience_years": current_user.experience_years,
+        "employee_id": current_user.employee_id,
+        "employee_category": current_user.employee_category,
+        "department": current_user.department or "General Administration",
+        "designation": current_user.designation or ("System Administrator" if current_user.role == RoleEnum.ADMIN else "Employee"),
+        "verification_status": current_user.verification_status or ("Verified" if current_user.role == RoleEnum.ADMIN else "Pending"),
+        "verification_confidence": current_user.verification_confidence,
+        "recommended_courses": current_user.recommended_courses,
+        "is_active": current_user.is_active,
+        "created_at": current_user.created_at
+    }
 
 def record_login_history(db: AsyncSession, user_id: str, request: Request):
     ip_address = request.client.host if request.client else None

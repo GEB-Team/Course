@@ -59,6 +59,7 @@ class User(Base):
     refresh_tokens = relationship("RefreshToken", back_populates="user", cascade="all, delete-orphan")
     login_history = relationship("LoginHistory", back_populates="user", cascade="all, delete-orphan")
     documents = relationship("EmployeeDocument", back_populates="user", cascade="all, delete-orphan")
+    course_reviews = relationship("CourseReview", back_populates="user", cascade="all, delete-orphan")
 
 class RefreshToken(Base):
     __tablename__ = "refresh_tokens"
@@ -96,14 +97,130 @@ class EmployeeDocument(Base):
 
     user = relationship("User", back_populates="documents")
 
-class Course(Base):
-    __tablename__ = "courses"
+# ─────────────────────────────────────────────────────────────────────────────
+# Course Detail Module — New Models
+# ─────────────────────────────────────────────────────────────────────────────
+
+class CourseStatusEnum(str, enum.Enum):
+    DRAFT = "DRAFT"
+    PUBLISHED = "PUBLISHED"
+
+class CourseLevelEnum(str, enum.Enum):
+    BEGINNER = "Beginner"
+    INTERMEDIATE = "Intermediate"
+    ADVANCED = "Advanced"
+    ALL_LEVELS = "All Levels"
+
+class Instructor(Base):
+    """Course instructor / trainer profile."""
+    __tablename__ = "instructors"
+
     id = Column(String, primary_key=True, default=lambda: str(uuid.uuid4()), index=True)
     name = Column(String, nullable=False)
-    description = Column(String, nullable=True)
-    difficulty_level = Column(String, nullable=True)
-    estimated_duration = Column(String, nullable=True)
+    bio = Column(String, nullable=True)
+    profile_image = Column(String, nullable=True)
+    total_courses = Column(Integer, default=0)
+    average_rating = Column(String, nullable=True)  # stored as "4.5"
     created_at = Column(DateTime, default=datetime.utcnow)
+
+    # Relationship
+    courses = relationship("Course", back_populates="instructor")
+
+class Course(Base):
+    """Extended course table with full detail-page fields."""
+    __tablename__ = "courses"
+
+    id = Column(String, primary_key=True, default=lambda: str(uuid.uuid4()), index=True)
+    # Basic info
+    name = Column(String, nullable=False)
+    subtitle = Column(String, nullable=True)
+    description = Column(String, nullable=True)        # long description
+    short_description = Column(String, nullable=True)  # card blurb
+    category = Column(String, nullable=True)
+    level = Column(Enum(CourseLevelEnum), nullable=True, default=CourseLevelEnum.ALL_LEVELS)
+    language = Column(String, nullable=True, default="English")
+    difficulty_level = Column(String, nullable=True)   # legacy field kept for compatibility
+    estimated_duration = Column(String, nullable=True) # legacy field kept for compatibility
+
+    # Media
+    thumbnail_url = Column(String, nullable=True)
+    intro_video_url = Column(String, nullable=True)
+
+    # Pricing
+    price = Column(Integer, nullable=True, default=0)           # in smallest currency unit (e.g. paise / cents)
+    discounted_price = Column(Integer, nullable=True)
+
+    # Curriculum stats (denormalized for performance)
+    total_lectures = Column(Integer, nullable=True, default=0)
+    total_duration_minutes = Column(Integer, nullable=True, default=0)
+
+    # Rich content (stored as JSON strings)
+    what_you_learn = Column(String, nullable=True)   # JSON list of strings
+    requirements = Column(String, nullable=True)     # JSON list of strings
+    target_audience = Column(String, nullable=True)  # JSON list of strings
+
+    # Status & visibility
+    status = Column(Enum(CourseStatusEnum), nullable=False, default=CourseStatusEnum.DRAFT)
+
+    # Instructor FK
+    instructor_id = Column(String, ForeignKey("instructors.id", ondelete="SET NULL"), nullable=True)
+
+    # Timestamps
+    created_at = Column(DateTime, default=datetime.utcnow)
+    last_updated = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+    # Relationships
+    instructor = relationship("Instructor", back_populates="courses")
+    sections = relationship("CourseSection", back_populates="course",
+                            cascade="all, delete-orphan", order_by="CourseSection.order_index")
+    reviews = relationship("CourseReview", back_populates="course", cascade="all, delete-orphan")
+
+class CourseSection(Base):
+    """A named section inside a course (e.g., 'Module 1 — Introduction')."""
+    __tablename__ = "course_sections"
+
+    id = Column(String, primary_key=True, default=lambda: str(uuid.uuid4()), index=True)
+    course_id = Column(String, ForeignKey("courses.id", ondelete="CASCADE"), nullable=False)
+    title = Column(String, nullable=False)
+    order_index = Column(Integer, nullable=False, default=0)
+
+    # Relationships
+    course = relationship("Course", back_populates="sections")
+    lectures = relationship("CourseLecture", back_populates="section",
+                            cascade="all, delete-orphan", order_by="CourseLecture.order_index")
+
+class CourseLecture(Base):
+    """A single lecture / lesson inside a section."""
+    __tablename__ = "course_lectures"
+
+    id = Column(String, primary_key=True, default=lambda: str(uuid.uuid4()), index=True)
+    section_id = Column(String, ForeignKey("course_sections.id", ondelete="CASCADE"), nullable=False)
+    title = Column(String, nullable=False)
+    duration_minutes = Column(Integer, nullable=True, default=0)  # duration in minutes
+    is_preview = Column(Boolean, default=False)  # free preview lecture
+    order_index = Column(Integer, nullable=False, default=0)
+
+    # Relationship
+    section = relationship("CourseSection", back_populates="lectures")
+
+class CourseReview(Base):
+    """User rating & review for a published course."""
+    __tablename__ = "course_reviews"
+
+    id = Column(String, primary_key=True, default=lambda: str(uuid.uuid4()), index=True)
+    course_id = Column(String, ForeignKey("courses.id", ondelete="CASCADE"), nullable=False)
+    user_id = Column(String, ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
+    rating = Column(Integer, nullable=False)   # 1-5
+    comment = Column(String, nullable=True)
+    created_at = Column(DateTime, default=datetime.utcnow)
+
+    # Relationships
+    course = relationship("Course", back_populates="reviews")
+    user = relationship("User", back_populates="course_reviews")
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Existing models below (unchanged)
+# ─────────────────────────────────────────────────────────────────────────────
 
 class CourseRegistration(Base):
     __tablename__ = "course_registrations"

@@ -18,6 +18,7 @@ import NotificationsPage from './pages/NotificationsPage';
 import RecommendationsPage from './pages/RecommendationsPage';
 import SupportPage from './pages/SupportPage';
 import SettingsPage from './pages/SettingsPage';
+import CourseDetailPage from './pages/CourseDetailPage';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { CircularProgress, Box } from '@mui/material';
 
@@ -45,9 +46,11 @@ function App() {
     <Router>
       <AuthProvider>
         <Routes>
-          {/* Public Authentication Routes */}
+          {/* Public Routes — No auth required */}
           <Route path="/" element={<AuthPage />} />
           <Route path="/employee/register" element={<EmployeeRegistrationPage />} />
+          {/* Course Detail Module — publicly accessible */}
+          <Route path="/courses/:id" element={<CourseDetailPage />} />
           
           {/* Employee Portal Routes */}
           <Route 

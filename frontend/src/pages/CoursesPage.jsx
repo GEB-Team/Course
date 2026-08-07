@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { 
   Box, Typography, Grid, Card, CardContent, CardMedia, 
   Button, Chip, LinearProgress, Tabs, Tab, Paper, Divider 
@@ -62,6 +63,7 @@ const courseData = [
 const CoursesPage = ({ initialTab = 0 }) => {
   const [tab, setTab] = useState(initialTab);
   const [courses, setCourses] = useState(courseData);
+  const navigate = useNavigate();
 
   const handleEnroll = (id) => {
     setCourses(prev => prev.map(c => c.id === id ? { ...c, status: 'In Progress', progress: 5 } : c));
@@ -135,13 +137,22 @@ const CoursesPage = ({ initialTab = 0 }) => {
                     )}
 
                     {course.status === 'Available' ? (
-                      <Button 
-                        variant="contained" 
-                        fullWidth 
-                        onClick={() => handleEnroll(course.id)}
-                      >
-                        Enroll Now
-                      </Button>
+                      <Box sx={{ display: 'flex', gap: 1 }}>
+                        <Button 
+                          variant="outlined"
+                          sx={{ flex: 1, borderRadius: 9999, fontSize: '0.78rem' }}
+                          onClick={() => navigate(`/courses/${course.id}`)}
+                        >
+                          View Details
+                        </Button>
+                        <Button 
+                          variant="contained" 
+                          sx={{ flex: 1, borderRadius: 9999 }}
+                          onClick={() => handleEnroll(course.id)}
+                        >
+                          Enroll Now
+                        </Button>
+                      </Box>
                     ) : course.status === 'Completed' ? (
                       <Button 
                         variant="outlined" 

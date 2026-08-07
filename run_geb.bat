@@ -44,6 +44,7 @@ echo [2/4] Initializing Database and Admin Seed...
 cd /d "%~dp0backend"
 call ".\venv\Scripts\python.exe" create_tables.py >nul 2>&1
 call ".\venv\Scripts\python.exe" seed_admin.py >nul 2>&1
+call ".\venv\Scripts\python.exe" seed_courses.py >nul 2>&1
 cd /d "%~dp0"
 
 echo [3/4] Checking Frontend Dependencies...

@@ -116,10 +116,12 @@ async def login_manual(request: Request, login_data: LoginRequest, db: AsyncSess
 
 @router.post("/login/google", response_model=Token)
 async def login_google(request: Request, login_data: GoogleLoginRequest, db: AsyncSession = Depends(get_db)):
-    # Verify Google token
-    idinfo = verify_google_token(login_data.credential)
-    if not idinfo:
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid Google token")
+    try:
+        idinfo = verify_google_token(login_data.credential)
+        if not idinfo:
+            raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid Google token (returned None)")
+    except Exception as e:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail=f"Google Token Error: {str(e)}")
     
     email = idinfo.get('email')
     

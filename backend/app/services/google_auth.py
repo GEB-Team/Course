@@ -17,6 +17,7 @@ def verify_google_token(token: str):
         #     raise ValueError('Wrong hosted domain.')
 
         return idinfo
-    except ValueError:
+    except ValueError as e:
         # Invalid token
-        return None
+        print(f"Google Token Verification Failed: {e}")
+        raise e

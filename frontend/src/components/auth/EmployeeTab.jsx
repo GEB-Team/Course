@@ -28,7 +28,7 @@ const EmployeeTab = () => {
     try {
       await loginGoogle(credentialResponse.credential, 'EMPLOYEE');
     } catch (err) {
-      if (err.message) setError(err.message);
+      setError(err.response?.data?.detail || err.message || 'Google Sign-In failed.');
     }
   };
 

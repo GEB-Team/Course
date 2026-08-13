@@ -27,7 +27,6 @@ class Settings(BaseSettings):
     def sqlalchemy_database_uri_async(self) -> str:
         return "sqlite+aiosqlite:///./geb.db"
 
-    class Config:
-        env_file = ".env"
+    model_config = {"env_file": ".env"}
 
 settings = Settings()

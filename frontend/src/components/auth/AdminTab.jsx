@@ -28,7 +28,7 @@ const AdminTab = () => {
     try {
       await loginGoogle(credentialResponse.credential, 'ADMIN');
     } catch (err) {
-      setError(err.message || 'Google Sign-In failed.');
+      setError(err.response?.data?.detail || err.message || 'Google Sign-In failed.');
     }
   };
 

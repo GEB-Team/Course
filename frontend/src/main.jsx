@@ -7,7 +7,7 @@ import CssBaseline from '@mui/material/CssBaseline'
 import { GoogleOAuthProvider } from '@react-oauth/google'
 import theme from './theme'
 
-const GOOGLE_CLIENT_ID = 'placeholder-client-id.apps.googleusercontent.com' // Replace with actual Client ID
+const GOOGLE_CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID || 'placeholder-client-id.apps.googleusercontent.com';
 
 ReactDOM.createRoot(document.getElementById('root')).render(
   <React.StrictMode>
